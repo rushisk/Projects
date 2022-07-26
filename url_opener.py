@@ -1,29 +1,25 @@
 from sys import *
 import webbrowser
-import re
 import urllib.request
 import urllib.error
  
 
 def is_connected():
     try:
-        urllib.request.urlopen("https://216.58.192.142", timeout=1)
+        urllib.request.urlopen('https://google.com')
         return True
-    except urllib.error.URLError as err:
+    except:
         return False
 
-def Find(string):
-    url = re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|[?:%[-9a-fA-F]))+',string)
-    return url
-
 def WebLauncher(path):
-    with open(path) as fp:
-        for line in fp:
+    with open(path,'r') as fp:
+        while True:
+            line = fp.readline()
             print(line)
-            url = Find(line)
-            print(url)
-            for str in url:
-                webbrowser.open(str,new = 2)
+            if not line:
+                break
+            else:
+                webbrowser.open(line,new = 2)
 
 def main():
     print("-----------Rushikesh Kotule-----------------")
