@@ -1,37 +1,59 @@
-import os
-import pandas as pd
-import glob
 import re
-from tkinter import filedialog, Tk
+import os
+import sys
+import pandas as pd
 
-regex = r"^(([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,18}(?:\.[a-z]{2})?))$"
 
-#regex = re.compile(r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})')
+base_dir = os.getcwd()
+email_regex = r"^(([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,18}(?:\.[a-z]{2})?))$"
+ip_regex = r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'
 
-path = os.getcwd()
-files = glob.glob(os.path.join(path,"*.xlsx"))
 
-df_email = pd.DataFrame()
-for f in files:
-    df=pd.read_excel(f)
-    
-    for row in df.values.tolist():
-        for col in row:
-            matches = re.findall(regex, str(col))
-            if matches:
-                df_email = df_email.append([matches[0]], ignore_index=True)
- 
-df_email.columns = ['email_id', 'username', 'isp', 'domain'] 
+def get_email():
+    df_email = pd.DataFrame()
+    all_files = os.listdir(input_dir)
+    for entry in all_files:
+        if entry.endswith(".xlsx"):    
+            df = pd.read_excel(os.path.join(input_dir,entry))
+            for row in df.values.tolist():
+                for col in row:
+                    email_matches = re.findall(email_regex, str(col))
+                    if email_matches:
+                        df_email = df_email.append([email_matches[0]], ignore_index=True)
+            df_email.columns = ['email_id', 'username', 'isp', 'domain'] 
+            df_email.to_excel(result_file, index=False)
 
-root = Tk()  # this is to close the dialogue box later     
+
+def get_ip():
+    df_ip = pd.DataFrame()
+    all_files = os.listdir(input_dir)
+    for entry in all_files:
+        if entry.endswith(".xlsx"):
+            df = pd.read_excel(os.path.join(input_dir,entry))
+            for row in df.values.tolist():
+                for col in row:
+                    ip_matches = re.findall(ip_regex, str(col))
+                    if ip_matches:
+                        df_ip = df_ip.append([ip_matches[0]], ignore_index=True)
+            df_ip.columns = ['ip address'] 
+            df_ip.to_excel(result_file, index=False)
+
+
+user_file_name = input('Enter result file name:\t')
+if not user_file_name.endswith(".xlsx"):
+    user_file_name = user_file_name + ".xlsx"
+result_file = os.path.join(base_dir, user_file_name)
+
+input_dir = os.path.join(base_dir, "input")
 try:
-    # with block automatically closes file
-    with filedialog.asksaveasfile(mode='w', defaultextension=".xlsx") as file:
-        df_email.to_excel(file.name, index=False)
-        
-except AttributeError:
-    # if user cancels save, filedialog returns None rather than a file object, and the 'with' will raise an error
-    print("The user cancelled save")
-    
-root.destroy() # close the dialogue box
+    user_option = int(input("What do you want to grep:\n1]IP->press 1\n2]Email->press 2\nYour choice:\t"))
+except Exception:
+    print("You are not entering INT values:\t")
+    sys.exit()
+if user_option == 1:
+    get_email()    
+elif user_option == 2:
+    get_ip()    
+else:
+    print("Your choice is not OK, redo..")
 
